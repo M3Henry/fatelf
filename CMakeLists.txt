@@ -1,18 +1,17 @@
-cmake_minimum_required(VERSION 3.0.0)
-project(FatELF)
+cmake_minimum_required(VERSION 3.5.0)
+project(FatELF VERSION 1.0.0)
 
 include(CheckSymbolExists)
 include(GNUInstallDirs)
 
 execute_process(
-    COMMAND git rev-list HEAD~..
+    COMMAND git rev-parse HEAD
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     RESULT_VARIABLE GITVERSION_RC
     OUTPUT_VARIABLE FATELF_VERSION
     ERROR_QUIET
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
-
 
 if(CMAKE_COMPILER_IS_GNUCC)
     add_definitions(-pipe -fsigned-char -Wall -Werror)
@@ -23,12 +22,12 @@ add_definitions(-DAPPREV="${FATELF_VERSION}")
 
 include_directories(include)
 
-add_library(fatelf-utils STATIC utils/fatelf-utils.c)
+add_library(fatelf-utils OBJECT utils/fatelf-utils.c)
 
 macro(add_fatelf_executable _NAME)
     add_executable(${_NAME} utils/${_NAME}.c)
     target_link_libraries(${_NAME} fatelf-utils)
-    install(TARGETS ${_NAME} RUNTIME DESTINATION bin)
+    install(TARGETS ${_NAME} RUNTIME)
 endmacro()
 
 add_fatelf_executable(fatelf-glue)
@@ -53,6 +52,23 @@ if(MEMFD AND FEXECVE AND EXISTS /proc/self/exe)
         install(FILES ${CMAKE_BINARY_DIR}/fatelf.conf DESTINATION ${CMAKE_INSTALL_LIBDIR}/binfmt.d/)
     endif()
 endif()
+
+set(CPACK_PACKAGE_CONTACT a@example.com)
+
+list(APPEND CPACK_GENERATOR TGZ)
+
+find_program(DPKG dpkg)
+if(DPKG)
+    list(APPEND CPACK_GENERATOR DEB)
+    set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+endif()
+
+find_program(RPMBUILD rpmbuild)
+if(RPMBUILD)
+    list(APPEND CPACK_GENERATOR RPM)
+endif()
+
+include(CPack)
 
 # end of CMakeLists.txt ...
 

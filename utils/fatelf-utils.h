@@ -57,7 +57,7 @@ typedef struct fatelf_osabi_info
 // all functions that start with 'x' may call exit() on error!
 
 // Report an error to stderr and terminate immediately with exit(1).
-[[noreturn]] void xfail(const char *fmt, ...) FATELF_ISPRINTF(1,2);
+__attribute__((noreturn)) void xfail(const char *fmt, ...) FATELF_ISPRINTF(1,2);
 
 // Wrap malloc() with an xfail(), so this returns memory or calls exit().
 // Memory is guaranteed to be initialized to zero.

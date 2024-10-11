@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         platform:
-        - { name: Linux,   os: ubuntu-20.04, flags: -GNinja }
+        - { name: Linux,   os: ubuntu-latest, flags: -GNinja }
     steps:
     - name: Setup Linux dependencies
       if: runner.os == 'Linux'
@@ -20,5 +20,14 @@ jobs:
       uses: actions/checkout@v2
     - name: Configure CMake
       run: cmake -B build ${{ matrix.platform.flags }}
-    - name: Build
-      run: cmake --build build/
+    - name: Build & package
+      run: cmake --build build/ -t all package
+    - name: Archive packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: FatELF-1.0.0-Linux
+        compression-level: 0
+        path: |
+          build/FatELF-*.tar.gz
+          build/FatELF-*.deb
+          build/FatELF-*.rpm
