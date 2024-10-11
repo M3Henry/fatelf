@@ -73,7 +73,7 @@ const char *fatelf_build_version = MAKEBUILDVERSTRINGLITERAL(APPID, APPREV);
 
 
 // Report an error to stderr and terminate immediately with exit(1).
-void xfail(const char *fmt, ...)
+[[noreturn]] void xfail(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
