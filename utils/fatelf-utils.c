@@ -11,6 +11,7 @@
 #define FATELF_UTILS 1
 #include "fatelf-utils.h"
 
+#include <elf.h>
 #include <errno.h>
 #include <unistd.h>
 #include <stdarg.h>
@@ -549,6 +550,7 @@ static const fatelf_machine_info machines[] =
     { 108, "sep", "Sharp embedded microprocessor" },
     { 109, "arca", "Arca RISC Microprocessor" },
     { 110, "unicore", "Microprocessor series from PKU-Unity Ltd. and MPRC of Peking University" },
+    { EM_AARCH64, "aarch64", "ARM AARCH64" },
     { 0x9026, "alpha", "Digital Alpha" },  // linux headers use this.
     { 0x9080, "v850", "NEC v850" },  // old tools use this, apparently.
     { 0x9041, "m32r", "Mitsubishi M32R" },  // old tools use this, apparently.
