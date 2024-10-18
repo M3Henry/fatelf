@@ -13,6 +13,12 @@ execute_process(
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
+if(CMAKE_SYSTEM_NAME STREQUAL Linux)
+    include(FindPkgConfig)
+    pkg_check_modules(libbsd REQUIRED IMPORTED_TARGET libbsd)
+    link_libraries(PkgConfig::libbsd)
+endif()
+
 if(CMAKE_COMPILER_IS_GNUCC)
     add_definitions(-pipe -fsigned-char -Wall -Werror)
 endif()

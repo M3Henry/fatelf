@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <string.h>
 
 const char *unlink_on_xfail = NULL;
 static uint8_t zerobuf[4096];
@@ -104,8 +105,9 @@ void *xmalloc(const size_t len)
 // Allocate a copy of (str), xfail() on allocation failure.
 char *xstrdup(const char *str)
 {
-    char *retval = (char *) xmalloc(strlen(str) + 1);
-    strcpy(retval, str);
+    char *retval = strdup(str);
+    if (!retval)
+        xfail("Out of memory!");
     return retval;
 } // xstrdup
 
@@ -849,7 +851,13 @@ const char *fatelf_get_wordsize_target_name(const uint8_t wordsize)
     return NULL;
 } // fatelf_get_wordsize_target_name
 
-
+static size_t xstrlcat(char* dst, char const* src, size_t dstsize)
+{
+    size_t len = strlcat(dst, src, dstsize);
+    if (len >= dstsize)
+        xfail("Internal error: string truncated.");
+    return len;
+}
 
 const char *fatelf_get_target_name(const FATELF_record *rec, const int wants)
 {
@@ -863,40 +871,37 @@ const char *fatelf_get_target_name(const FATELF_record *rec, const int wants)
     buffer[0] = '\0';
 
     if ((wants & FATELF_WANT_MACHINE) && (machine))
-    {
-        if (buffer[0])
-            strcat(buffer, ":");
-        strcat(buffer, machine->name);
-    } // if
+        xstrlcat(buffer, machine->name, sizeof buffer);
 
     if ((wants & FATELF_WANT_WORDSIZE) && (wordsize))
     {
         if (buffer[0])
-            strcat(buffer, ":");
-        strcat(buffer, wordsize);
+            xstrlcat(buffer, ":", sizeof buffer);
+        xstrlcat(buffer, wordsize, sizeof buffer);
     } // if
 
     if ((wants & FATELF_WANT_BYTEORDER) && (order))
     {
         if (buffer[0])
-            strcat(buffer, ":");
-        strcat(buffer, order);
+            xstrlcat(buffer, ":", sizeof buffer);
+        xstrlcat(buffer, order, sizeof buffer);
     } // if
 
     if ((wants & FATELF_WANT_OSABI) && (osabi))
     {
         if (buffer[0])
-            strcat(buffer, ":");
-        strcat(buffer, osabi->name);
+            xstrlcat(buffer, ":", sizeof buffer);
+        xstrlcat(buffer, osabi->name, sizeof buffer);
     } // if
 
     if (wants & FATELF_WANT_OSABIVER)
     {
         char tmp[32];
         if (buffer[0])
-            strcat(buffer, ":");
-        snprintf(tmp, sizeof (tmp), "osabiver%d", (int) rec->osabi_version);
-        strcat(buffer, tmp);
+            xstrlcat(buffer, ":", sizeof buffer);
+        if (snprintf(tmp, sizeof tmp, "osabiver%u", rec->osabi_version) >= sizeof tmp)
+            xfail("Internal error: string truncated.");
+        xstrlcat(buffer, tmp, sizeof buffer);
     } // if
 
     return buffer;
