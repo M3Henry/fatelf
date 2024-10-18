@@ -15,7 +15,7 @@ execute_process(
 
 if(CMAKE_SYSTEM_NAME STREQUAL Linux)
     include(FindPkgConfig)
-    pkg_check_modules(libbsd REQUIRED IMPORTED_TARGET libbsd)
+    pkg_check_modules(libbsd REQUIRED IMPORTED_TARGET libbsd-overlay)
     link_libraries(PkgConfig::libbsd)
 endif()
 
@@ -30,10 +30,14 @@ include_directories(include)
 
 add_library(fatelf-utils OBJECT utils/fatelf-utils.c)
 
-macro(add_fatelf_executable _NAME)
-    add_executable(${_NAME} utils/${_NAME}.c)
+macro(add_fatelf_executable_src _NAME _SRC)
+    add_executable(${_NAME} utils/${_SRC})
     target_link_libraries(${_NAME} fatelf-utils)
     install(TARGETS ${_NAME} RUNTIME)
+endmacro()
+
+macro(add_fatelf_executable _NAME)
+    add_fatelf_executable_src(${_NAME} ${_NAME}.c)
 endmacro()
 
 add_fatelf_executable(fatelf-glue)
@@ -47,6 +51,7 @@ add_fatelf_executable(fatelf-validate)
 
 set(CMAKE_REQUIRED_DEFINITIONS -D_GNU_SOURCE)
 check_symbol_exists(memfd_create sys/mman.h MEMFD)
+check_symbol_exists(mkostemp stdlib.h MKOSTEMP)
 check_symbol_exists(fexecve unistd.h FEXECVE)
 if(MEMFD AND FEXECVE AND EXISTS /proc/self/exe)
     add_fatelf_executable(fatelf-exec)
@@ -57,6 +62,8 @@ if(MEMFD AND FEXECVE AND EXISTS /proc/self/exe)
         install(DIRECTORY DESTINATION ${CMAKE_INSTALL_LIBDIR}/binfmt.d)
         install(FILES ${CMAKE_BINARY_DIR}/fatelf.conf DESTINATION ${CMAKE_INSTALL_LIBDIR}/binfmt.d/)
     endif()
+elseif(MKOSTEMP)
+    add_fatelf_executable_src(fatelf-exec fatelf-exec-openbsd.c)
 endif()
 
 set(CPACK_PACKAGE_CONTACT a@example.com)
