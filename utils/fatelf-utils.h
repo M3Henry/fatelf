@@ -127,6 +127,7 @@ const fatelf_machine_info *get_machine_by_id(const uint16_t id);
 const fatelf_machine_info *get_machine_by_name(const char *name);
 const fatelf_osabi_info *get_osabi_by_id(const uint8_t id);
 const fatelf_osabi_info *get_osabi_by_name(const char *name);
+const fatelf_osabi_info *get_osabi_by_uname(const char *uname);
 
 // Returns a string that can be used to target a specific record.
 const char *fatelf_get_target_name(const FATELF_record *rec, const int wants);

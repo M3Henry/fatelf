@@ -639,6 +639,19 @@ const fatelf_osabi_info *get_osabi_by_name(const char *name)
 } // get_osabi_by_name
 
 
+const fatelf_osabi_info *get_osabi_by_uname(const char *uname)
+{
+    int i;
+    for (i = 0; i < (sizeof (osabis) / sizeof (osabis[0])); i++)
+    {
+        if (strcmp(osabis[i].desc, uname) == 0)
+            return &osabis[i];
+    } // for
+
+    return NULL;
+} // get_osabi_by_name
+
+
 static int parse_abi_version_string(const char *str)
 {
     long num = 0;

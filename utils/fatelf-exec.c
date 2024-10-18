@@ -10,6 +10,7 @@
 #define FATELF_UTILS 1
 #include "fatelf-utils.h"
 #include <sys/mman.h>
+#include <sys/utsname.h>
 #include <unistd.h>
 
 static FATELF_record * xfind_matching_record(FATELF_record const *tgt, FATELF_header *header)
@@ -34,6 +35,14 @@ int main(int argc, char *argv[], char *envp[])
     FATELF_record self_elf;
     xread_elf_header(argv[0], self, 0, &self_elf);
 
+    if (!self_elf.osabi) {
+	struct utsname n;
+	uname(&n);
+	const fatelf_osabi_info *osabi = get_osabi_by_uname(n.sysname);
+	if (!osabi)
+	    xfail("fatelf-exec running on unknown OS ABI: %s", n.sysname);
+	self_elf.osabi = osabi->id;
+    }
     FATELF_record const *rec = xfind_matching_record(&self_elf, header);
 
     int outfd = memfd_create("ELF", MFD_CLOEXEC);
